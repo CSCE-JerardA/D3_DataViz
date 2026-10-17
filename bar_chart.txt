@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bar Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .bar:hover {
+             fill: grey; /* pick a color */
+        }
+    </style>
+</head>
+<body>
+    <h1>Bar Chart example</h1>
+    <!-- Empty SVG of size 400x150 -->
+    <svg id="bar-chart" width="400" height="150"></svg>
+
+    <script>
+    const data = [45, 80, 150, 230, 95];
+    const chartWidth = 400;
+
+    // Set scale mapping data [0, 250] to pixels [0, 400]
+    const xScale = d3.scaleLinear()
+        .domain([0, d3.max(data)])
+        .range([0, chartWidth]);
+
+    d3.select("#bar-chart")
+        .selectAll("rect")
+        .data(data)
+        .join("rect")
+        .attr("class", "bar")
+        .attr("x", 0)
+        .attr("y", (d, i) => i * 28)       // Offset each bar vertically
+        .attr("width", d => xScale(d))     // Apply linear scale
+        .attr("height", 22)
+        .attr("fill", "steelblue")
+        .append("title").text(b => "length: " + b);
+
+    </script>
+</body>
+</html>

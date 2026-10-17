@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My title</title>
+</head>
+<body>
+    <textarea id="output" readonly></textarea>
+
+    <script>
+        function print(message) {
+            document.getElementById("output").value += message + "\n";
+        }
+
+        print("Hello, world");
+
+        let name = "Robert";
+        print(name);
+
+        for(let i=1; i<=10; i++) {
+            print(i);
+        }
+
+        let total = 5 + 7;
+        print("Total = " + total);
+
+        // FIZZBUZZ
+        for (let i = 1; i <= 100; i++) {
+            if ( i % 3 == 0 && i % 5 == 0 )
+                print( "FIZZBUZZ" );
+            else if ( i % 3 == 0 )
+                print( "FIZZ" );
+            else if ( i % 5 == 0 )
+                print( "BUZZ" );
+            else
+                print( i );
+        }
+    </script>
+</body>
+</html>

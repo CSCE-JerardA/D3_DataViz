@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Scatter Plot and Randomization</title>
+  <!-- Load D3 library -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .tooltip {
+      position: absolute;
+      visibility: hidden;
+      background-color: #333333;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: sans-serif;
+      font-size: 12px;
+      pointer-events: none; /* CRITICAL: Prevents flickering by letting mouse pass through */
+      box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+    <h1>Scatter Plot and Randomization</h1>
+
+    <svg id="scatterplot" width="500" height="300"></svg>
+    <br>
+    <button onclick="updateData()">Randomize Points</button>
+
+    <script>
+        const svg = d3.select("#scatterplot");
+        // set margins for the scatter plot inside the svg box
+        const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+        // adjust the actual width, based on the margins
+        const width = 500 - margin.left - margin.right;
+        const height = 300 - margin.top - margin.bottom;
+
+        // g is a Group, containing all circles, axes, lines, etc.
+        // with g, all elements compute their positions relative to [0, 0]
+        // without g, each element would have to compute its offset from the canvas
+        const g = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+        // Scales
+        // set the x axis to display 1-100, scaled to fit
+        const xScale = d3.scaleLinear().domain([0, 100]).range([0, width]);
+        // set the y axis to display 1-100, scaled to fit
+        const yScale = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+
+        // Render Axes
+        g.append("g")
+            .attr("transform", `translate(0, ${height})`)
+            .call(d3.axisBottom(xScale));
+        g.append("g")
+            .call(d3.axisLeft(yScale));
+
+        // tooltip (shared across the body)
+        const tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip");
+
+        function render(dataset) {
+            g.selectAll("circle")  // create a circle per point
+            .data(dataset)
+            .join(
+                enter => enter.append("circle")
+                .attr("cx", d => xScale(d.x))
+                .attr("cy", d => yScale(d.y))
+                .attr("r", 0)
+                .attr("fill", "crimson")
+                // on mouseover, make tooltip visible and set data text
+                .on("mouseover", function(event, d) {
+                    tooltip.style("visibility", "visible")
+                        .html("X: " + d.x + "<br>Y: " + d.y);
+                    d3.select(this)
+                        .style("fill", "steelblue"); 
+                })
+                
+                // when the mouse moves (track pointer location on screen)
+                .on("mousemove", function(event) {
+                    tooltip.style("top", (event.pageY - 15) + "px")
+                        .style("left", (event.pageX + 12) + "px");
+                })
+                
+                // when the mouse isn't pointing anymore, hide tooltip
+                .on("mouseout", function() {
+                    tooltip.style("visibility", "hidden");
+                    d3.select(this).style("fill", "crimson"); 
+                }),
+                update => update,
+                exit => exit.remove()
+            )
+            .transition()  // move each point from original to new location
+            .duration(750)  // move each point in 750 ms
+            .attr("cx", d => xScale(d.x))
+            .attr("cy", d => yScale(d.y))
+            .attr("r", 6);
+        }
+
+        function generateRandomData() {
+            // generate a bunch of (x,y) pairs within [5,94]
+            return Array.from({ length: 12 }, () => ({
+                x: Math.floor(Math.random() * 90) + 5,
+                y: Math.floor(Math.random() * 90) + 5
+            }));
+        }
+
+        function updateData() {
+            render(generateRandomData());
+        }
+
+        // Initial draw
+        render(generateRandomData());
+    </script>
+</body>
+</html>
