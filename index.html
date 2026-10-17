@@ -9,7 +9,78 @@
     <!-- This is where I load my D3 library/data-->
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
+    <!-- My CSS Section-->
+    <style>
+
+        body {
+            font-family:'Times New Roman', Times, serif;
+            margin: 30px;
+            background-color:white;
+            color:black;
+        }
+
+        h1, h2 {
+
+            color:black;
+        }
+
+        .descrip {
+
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+
+        .bar {
+
+            fill:darkolivegreen;
+        }
+
+        .bar:hover {
+
+            fill:darkgreen;
+        }
+
+        .axis-label {
+
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        svg {
+
+            background-color: white;
+            border: 1px solid whitesmoke;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+
+    </style>
+
 </head>
+
+<body>
+
+
+    <!--For my description and links-->
+
+    <h1>US Vehicle Registrations and Licensed Drivers (1960-2023)</h1>
+    <div class="descrip">
+
+        <p>
+            These visualizations portray the Department of Transportation's data on licensed drivers
+            and vehicle registrations in the US from 1960 to 2023.
+            This dataset can be accessed at <a href="https://catalog.data.gov/dataset/licensed-drivers-vehicle-registrations-and-resident-population-dv-1c" target="_blank">data.gov </a>
+        </p>
+
+
+
+    </div>
+
+    <!-- Scatter Plot-->
+    <h2>Scatter Plot: Drivers vs Vehicles</h2>
+    <p>This displays the relationship between the number of licensed drivers and the number of registered vehicles</p>
+</body>
 
 
 
