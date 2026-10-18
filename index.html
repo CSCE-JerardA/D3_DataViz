@@ -79,28 +79,149 @@
 
     <!-- Scatter Plot-->
     <h2>Scatter Plot: Drivers vs Vehicles</h2>
-    <p>This displays the relationship between the number of licensed drivers and the number of registered vehicles</p>
+    <p>This displays the relationship between the number of licensed drivers and the number of registered vehicles[cite: 1]. Red circles represent years where drivers outnumbered vehicles; blue circles represent years where drivers were less than or equal to vehicles[cite: 1]</p>
+    <svg id="scatter-plot" width="750" height="450"></svg>
+
+    <!-- Bar Chart-->
+    <h2>Bar Chart: Vehicle Registrations Over Time</h2>
+    <p>This bar chart displays the total number of registered vehicles for each year from 1960 through 2023[cite: 1]. Hover over any bar to highlight it and view details[cite: 1].</p>
+    <svg id="bar-chart" width="950" height="450"></svg>
+
+    <script>
+        // Loading D3 CSV data 
+        d3.csv("https://data.transportation.gov/api/views/9hnm-fr6r/rows.csv").then(function(data) {
+            
+            
+            data.forEach(d => {
+                d.Year = +d.Year;
+                
+                d.Drivers = +d["Licensed Drivers"] || +d["Drivers"] || 0;
+                d.Vehicles = +d["Vehicle Registrations"] || +d["Registrations"] || +d["Total Registrations"] || 0;
+            });
+
+            
+            data = data.filter(d => !isNaN(d.Year) && !isNaN(d.Drivers) && !isNaN(d.Vehicles));
+
+            
+            data.forEach(d => {
+                if (d.Drivers > 1000) d.Drivers = d.Drivers / 1000000;
+                if (d.Vehicles > 1000) d.Vehicles = d.Vehicles / 1000000;
+            });
+
+            // Scatter Plot
+            const sSvg = d3.select("#scatter-plot");
+            const sMargin = { top: 20, right: 30, bottom: 50, left: 60 };
+            const sWidth = 750 - sMargin.left - sMargin.right;
+            const sHeight = 450 - sMargin.top - sMargin.bottom;
+
+            const sG = sSvg.append("g")
+                .attr("transform", `translate(${sMargin.left}, ${sMargin.top})`);
+
+            const xScale = d3.scaleLinear()
+                .domain([d3.min(data, d => d.Drivers) - 5, d3.max(data, d => d.Drivers) + 5])
+                .range([0, sWidth]);
+
+            const yScale = d3.scaleLinear()
+                .domain([d3.min(data, d => d.Vehicles) - 5, d3.max(data, d => d.Vehicles) + 5])
+                .range([sHeight, 0]);
+
+            // Render Axes
+            sG.append("g")
+                .attr("transform", `translate(0, ${sHeight})`)
+                .call(d3.axisBottom(xScale));
+
+            sG.append("g")
+                .call(d3.axisLeft(yScale));
+
+            // Axis Labels
+            sG.append("text")
+                .attr("transform", `translate(${sWidth / 2}, ${sHeight + 40})`)
+                .style("text-anchor", "middle")
+                .attr("class", "axis-label")
+                .text("Drivers (in millions)");
+
+            sG.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -45)
+                .attr("x", -sHeight / 2)
+                .style("text-anchor", "middle")
+                .attr("class", "axis-label")
+                .text("Vehicles (in millions)");
+
+            
+            sG.selectAll("circle")
+                .data(data)
+                .join("circle")
+                .attr("cx", d => xScale(d.Drivers))
+                .attr("cy", d => yScale(d.Vehicles))
+                .attr("r", 5)
+                .attr("fill", d => d.Drivers > d.Vehicles ? "crimson" : "steelblue") 
+                .append("title") // Title element for tooltip info[cite: 1]
+                .text(d => `Year: ${d.Year}\nDrivers: ${Math.round(d.Drivers)} million\nVehicles: ${Math.round(d.Vehicles)} million`);
+
+
+            // Bar Chart
+            const bSvg = d3.select("#bar-chart");
+            const bMargin = { top: 20, right: 30, bottom: 60, left: 60 };
+            const bWidth = 950 - bMargin.left - bMargin.right;
+            const bHeight = 450 - bMargin.top - bMargin.bottom;
+
+            const bG = bSvg.append("g")
+                .attr("transform", `translate(${bMargin.left}, ${bMargin.top})`);
+
+            const bXScale = d3.scaleBand()
+                .domain(data.map(d => d.Year))
+                .range([0, bWidth])
+                .padding(0.15);
+
+            const bYScale = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.Vehicles) + 20])
+                .range([bHeight, 0]);
+
+            // Render Axes 
+            bG.append("g")
+                .attr("transform", `translate(0, ${bHeight})`)
+                .call(d3.axisBottom(bXScale).tickValues(bXScale.domain().filter(year => year % 5 === 0)))
+                .selectAll("text")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end");
+
+            bG.append("g")
+                .call(d3.axisLeft(bYScale));
+
+            // Axis Labels
+            bG.append("text")
+                .attr("transform", `translate(${bWidth / 2}, ${bHeight + 48})`)
+                .style("text-anchor", "middle")
+                .attr("class", "axis-label")
+                .text("Year");
+
+            bG.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -45)
+                .attr("x", -bHeight / 2)
+                .style("text-anchor", "middle")
+                .attr("class", "axis-label")
+                .text("Vehicles (in millions)");
+
+            
+            bG.selectAll("rect")
+                .data(data)
+                .join("rect")
+                .attr("class", "bar")
+                .attr("x", d => bXScale(d.Year))
+                .attr("y", d => bYScale(d.Vehicles))
+                .attr("width", bXScale.bandwidth())
+                .attr("height", d => bHeight - bYScale(d.Vehicles))
+                .append("title") 
+                .text(d => `Year: ${d.Year}\n${Math.round(d.Vehicles)} million vehicles`);
+
+        }).catch(error => {
+            console.error("Error loading CSV dataset:", error);
+        });
+    </script>
+
 </body>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
