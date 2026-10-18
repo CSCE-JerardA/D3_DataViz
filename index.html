@@ -94,12 +94,33 @@
         d3.csv("https://data.transportation.gov/api/views/9hnm-fr6r/rows.csv").then(function(data) {
             
             
-            const data = rawdata.map(d => ({
-                Year: +d.Year || +d.year,
-                Drivers: +(d.Drivers || d["Licensed Drivers"] || 0),
-                Vehicles: +(d.Vehicles || d["Vehicle Registrations"] || 0)
-            })).filter(d => !isNaN(d.Year) && d.Year >= 1960 && d.Year <= 2023)
-              .sort((a, b) => a.Year - b.Year);
+            
+            const rolledUpData = d3.rollups(rawdata, 
+                v => {
+                    const yr = +v[0].Year || +v[0].year;
+                    
+                    const totalDrivers = d3.sum(v, d => {
+                        return +d["Licensed Drivers"] || +d["Drivers"] || +d["Total Drivers"] || +d["Driver Licenses"] || 0;
+                    });
+
+                    const totalVehicles = d3.sum(v, d => {
+                        return +d["Vehicle Registrations"] || +d["Registrations"] || +d["Total Registrations"] || 0;
+                    });
+
+                    return { Year: yr, Drivers: totalDrivers, Vehicles: totalVehicles };
+                },
+                d => d.Year || d.year
+            ).map(([year, values]) => values)
+             .filter(d => !isNaN(d.Year) && d.Year >= 1960 && d.Year <= 2023)
+             .sort((a, b) => a.Year - b.Year);
+
+            
+            rolledUpData.forEach(d => {
+                if (d.Drivers > 1000) d.Drivers = d.Drivers / 1000000;
+                if (d.Vehicles > 1000) d.Vehicles = d.Vehicles / 1000000;
+            });
+
+            const data = rolledUpData;
 
             // Scatter Plot
             const sSvg = d3.select("#scatter-plot");
