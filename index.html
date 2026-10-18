@@ -37,7 +37,7 @@
 
         .bar:hover {
 
-            fill:darkgreen;
+            fill:lightgreen;
         }
 
         .axis-label {
@@ -92,21 +92,37 @@
         d3.csv("https://data.transportation.gov/api/views/9hnm-fr6r/rows.csv").then(function(data) {
             
             
-            data.forEach(d => {
-                d.Year = +d.Year;
-                
-                d.Drivers = +d["Licensed Drivers"] || +d["Drivers"] || 0;
-                d.Vehicles = +d["Vehicle Registrations"] || +d["Registrations"] || +d["Total Registrations"] || 0;
-            });
+            const rolledUpData = d3.rollups(rawdata, 
+                v => {
+                    
+                    const yr = +v[0].Year || +v[0].year;
+                    
+                    
+                    const totalDrivers = d3.sum(v, d => {
+                        const val = +d["Licensed Drivers"] || +d["Drivers"] || +d["Total Drivers"] || +d["Driver Licenses"] || 0;
+                        return val;
+                    });
+
+                    
+                    const totalVehicles = d3.sum(v, d => {
+                        const val = +d["Vehicle Registrations"] || +d["Registrations"] || +d["Total Registrations"] || 0;
+                        return val;
+                    });
+
+                    return { Year: yr, Drivers: totalDrivers, Vehicles: totalVehicles };
+                },
+                d => d.Year || d.year
+            ).map(([year, values]) => values)
+             .filter(d => !isNaN(d.Year) && d.Year >= 1960 && d.Year <= 2023)
+             .sort((a, b) => a.Year - b.Year);
 
             
-            data = data.filter(d => !isNaN(d.Year) && !isNaN(d.Drivers) && !isNaN(d.Vehicles));
-
-            
-            data.forEach(d => {
+            rolledUpData.forEach(d => {
                 if (d.Drivers > 1000) d.Drivers = d.Drivers / 1000000;
                 if (d.Vehicles > 1000) d.Vehicles = d.Vehicles / 1000000;
             });
+
+            const data = rolledUpData;
 
             // Scatter Plot
             const sSvg = d3.select("#scatter-plot");
@@ -156,7 +172,7 @@
                 .attr("cy", d => yScale(d.Vehicles))
                 .attr("r", 5)
                 .attr("fill", d => d.Drivers > d.Vehicles ? "crimson" : "steelblue") 
-                .append("title") // Title element for tooltip info[cite: 1]
+                .append("title") 
                 .text(d => `Year: ${d.Year}\nDrivers: ${Math.round(d.Drivers)} million\nVehicles: ${Math.round(d.Vehicles)} million`);
 
 
@@ -219,6 +235,8 @@
         }).catch(error => {
             console.error("Error loading CSV dataset:", error);
         });
+
+
     </script>
 
 </body>
